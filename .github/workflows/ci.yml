@@ -37,21 +37,25 @@ jobs:
       - name: 🧪 Tests Auth Service
         run: |
           cd auth-service
+          chmod +x mvnw
           ./mvnw clean test
 
       - name: 🧪 Tests Project Service
         run: |
           cd project-service
+          chmod +x mvnw
           ./mvnw clean test
 
       - name: 🧪 Tests File Service
         run: |
           cd file-service
+          chmod +x mvnw
           ./mvnw clean test
 
       - name: 🧪 Tests Notification Service
         run: |
           cd notification-service
+          chmod +x mvnw
           ./mvnw clean test
 
     # Analytics service (si tu l'actives)
