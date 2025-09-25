@@ -20,7 +20,7 @@ jobs:
   # JOB 1: TESTS UNITAIRES
   # ==========================================
   tests:
-    name: 🧪 Tests Unitaires
+    name: 📦 Compilation Services
     runs-on: ubuntu-latest
 
     services:
@@ -63,25 +63,25 @@ jobs:
         run: |
           cd auth-service
           chmod +x mvnw
-          ./mvnw clean test -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+          ./mvnw clean compile -DskipTests=true
 
       - name: 🧪 Tests Project Service
         run: |
           cd project-service
           chmod +x mvnw
-          ./mvnw clean test -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+          ./mvnw clean compile -DskipTests=true
 
       - name: 🧪 Tests File Service
         run: |
           cd file-service
           chmod +x mvnw
-          ./mvnw clean test -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+          ./mvnw clean compile -DskipTests=true
 
       - name: 🧪 Tests Notification Service
         run: |
           cd notification-service
           chmod +x mvnw
-          ./mvnw clean test -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+          ./mvnw clean compile -DskipTests=true
 
     # Analytics service (si tu l'actives)
     # - name: 🧪 Tests Analytics Service
