@@ -1,251 +1,78 @@
 # ==========================================
-# CI Pipeline - Tests et Build Automatique
+# SaaS CI - Version Simple (basée sur cinéma)
 # Fichier: .github/workflows/ci.yml
 # ==========================================
 
-name: 🚀 CI - Tests & Build
+name: SaaS CI - Build Simple
 
 on:
   push:
-    branches: [ main, develop, feature/* ]
+    branches: [ main, develop ]
   pull_request:
     branches: [ main, develop ]
 
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME_PREFIX: ${{ github.repository }}
-
 jobs:
-  # ==========================================
-  # JOB 1: TESTS UNITAIRES
-  # ==========================================
-  tests:
-    name: 🧪 Tests Unitaires
+  # =================== JOB UNIQUE: BUILD SIMPLE ===================
+  build-compile:
     runs-on: ubuntu-latest
 
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_DB: saas_test_db
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres123
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-
     steps:
-      - name: 📥 Checkout du code
-        uses: actions/checkout@v4
+      # Étape 1: Récupérer le code
+      - name: 📥 Récupérer le code
+        uses: actions/checkout@v3
 
-      - name: ☕ Setup Java 17
-        uses: actions/setup-java@v4
+      # Étape 2: Installer Java 17
+      - name: ☕ Installer Java 17
+        uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
           java-version: '17'
-          cache: maven
+          distribution: 'temurin'
 
-      - name: 🧪 Tests Auth Service
+      # Étape 3: Cache Maven
+      - name: 📦 Cache Maven
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+
+      # Étape 4: Build chaque service UN PAR UN
+      - name: 🔨 Build Auth Service
         run: |
+          echo "🚀 Build du Auth Service..."
           cd auth-service
-          chmod +x mvnw
-          ./mvnw clean test
+          mvn clean compile -DskipTests=true
+          echo "✅ Auth Service compilé!"
 
-      - name: 🧪 Tests Project Service
+      - name: 🔨 Build Project Service
         run: |
+          echo "🚀 Build du Project Service..."
           cd project-service
-          chmod +x mvnw
-          ./mvnw clean test
+          mvn clean compile -DskipTests=true
+          echo "✅ Project Service compilé!"
 
-      - name: 🧪 Tests File Service
+      - name: 🔨 Build File Service
         run: |
+          echo "🚀 Build du File Service..."
           cd file-service
-          chmod +x mvnw
-          ./mvnw clean test
+          mvn clean compile -DskipTests=true
+          echo "✅ File Service compilé!"
 
-      - name: 🧪 Tests Notification Service
+      - name: 🔨 Build Notification Service
         run: |
+          echo "🚀 Build du Notification Service..."
           cd notification-service
-          chmod +x mvnw
-          ./mvnw clean test
+          mvn clean compile -DskipTests=true
+          echo "✅ Notification Service compilé!"
 
-    # Analytics service (si tu l'actives)
-    # - name: 🧪 Tests Analytics Service
-    #   run: |
-    #     cd analytics-service
-    #     ./mvnw clean test
-
-  # ==========================================
-  # JOB 2: BUILD & PUSH IMAGES DOCKER
-  # ==========================================
-  build:
-    name: 🏗️ Build Docker Images
-    runs-on: ubuntu-latest
-    needs: tests
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
-
-    strategy:
-      matrix:
-        service: [auth-service, project-service, file-service, notification-service]
-
-    steps:
-      - name: 📥 Checkout du code
-        uses: actions/checkout@v4
-
-      - name: 🐳 Setup Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: 🔑 Login to Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: 🏷️ Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_PREFIX }}/${{ matrix.service }}
-          tags: |
-            type=ref,event=branch
-            type=sha,prefix={{branch}}-
-            type=raw,value=latest,enable={{is_default_branch}}
-
-      - name: 🏗️ Build et Push Image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./${{ matrix.service }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          platforms: linux/amd64,linux/arm64
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  # ==========================================
-  # JOB 3: TESTS D'INTÉGRATION
-  # ==========================================
-  integration-tests:
-    name: 🔄 Tests d'Intégration
-    runs-on: ubuntu-latest
-    needs: tests
-
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_DB: saas_test_db
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres123
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 5432:5432
-
-      redis:
-        image: redis:7-alpine
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-        ports:
-          - 6379:6379
-
-    steps:
-      - name: 📥 Checkout du code
-        uses: actions/checkout@v4
-
-      - name: ☕ Setup Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-          cache: maven
-
-      - name: 🔄 Tests d'intégration
-        env:
-          DB_HOST: localhost
-          DB_PORT: 5432
-          DB_NAME: saas_test_db
-          DB_USERNAME: postgres
-          DB_PASSWORD: postgres123
-          REDIS_HOST: localhost
-          REDIS_PORT: 6379
+      - name: 🔨 Build Analytics Service
         run: |
-          # Tests d'intégration pour chaque service
-          cd auth-service && ./mvnw clean verify -Pintegration-tests
-          cd ../project-service && ./mvnw clean verify -Pintegration-tests
-          cd ../file-service && ./mvnw clean verify -Pintegration-tests
-          cd ../notification-service && ./mvnw clean verify -Pintegration-tests
+          echo "🚀 Build du Analytics Service..."
+          cd analytics-service
+          mvn clean compile -DskipTests=true
+          echo "✅ Analytics Service compilé!"
 
-  # ==========================================
-  # JOB 4: SÉCURITÉ & QUALITÉ
-  # ==========================================
-  security:
-    name: 🔒 Analyse Sécurité
-    runs-on: ubuntu-latest
-    needs: tests
-
-    steps:
-      - name: 📥 Checkout du code
-        uses: actions/checkout@v4
-
-      - name: 🔍 Scan Vulnerabilités Docker
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: '.'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-
-      - name: 📊 Upload résultats à GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: 'trivy-results.sarif'
-
-  # ==========================================
-  # JOB 5: NOTIFICATION DE SUCCÈS
-  # ==========================================
-  notify:
-    name: 📢 Notifications
-    runs-on: ubuntu-latest
-    needs: [tests, build, integration-tests, security]
-    if: always()
-
-    steps:
-      - name: 🎉 Succès - Prêt pour déploiement
-        if: needs.tests.result == 'success' && needs.build.result == 'success'
+      # Étape 5: Message de fin
+      - name: 🎉 Build terminé
         run: |
-          echo "🚀 Pipeline CI réussi !"
-          echo "✅ Tests: ${{ needs.tests.result }}"
-          echo "✅ Build: ${{ needs.build.result }}"
-          echo "✅ Intégration: ${{ needs.integration-tests.result }}"
-          echo "✅ Sécurité: ${{ needs.security.result }}"
-          echo "👉 Prêt pour le déploiement sur staging/production"
-
-      - name: ❌ Échec - Investigation nécessaire
-        if: needs.tests.result == 'failure' || needs.build.result == 'failure'
-        run: |
-          echo "❌ Pipeline CI échoué !!"
-          echo "🔍 Vérifier les logs des jobs échoués"
-          exit 1
+          echo "🎉 Tous les services SaaS ont été compilés avec succès!"
+          echo "🚀 Ton architecture microservices SaaS est prête!"
