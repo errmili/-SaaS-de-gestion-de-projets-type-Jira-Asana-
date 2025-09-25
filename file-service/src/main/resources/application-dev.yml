@@ -1,0 +1,59 @@
+server:
+  port: 8083
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/saas_project_db_dev?currentSchema=file_db
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: file_db
+
+  servlet:
+    multipart:
+      max-file-size: 50MB
+      max-request-size: 50MB
+
+# Services externes en local
+auth-service:
+  base-url: http://localhost:8081
+
+project-service:
+  base-url: http://localhost:8082
+
+# Stockage local pour dev
+storage:
+  provider: local
+  local:
+    base-path: ./temp-storage
+
+# Antivirus desactive en dev
+antivirus:
+  enabled: false
+
+# Logging detaille pour dev
+logging:
+  level:
+    com.projectsaas.file: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.web.multipart: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

@@ -1,0 +1,78 @@
+# ==========================================
+# application-docker.yml - Auth Service Docker
+# ==========================================
+server:
+  port: 8081
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/saas_project_db_dev?currentSchema=auth_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: auth_db
+
+  flyway:
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    schemas: auth_db
+    default-schema: auth_db
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: 86400000
+  refresh-expiration: 604800000
+
+# Services URLs pour Docker
+services:
+  project-service:
+    url: http://project-service:8082
+  file-service:
+    url: http://file-service:8083
+  analytics-service:
+    url: http://analytics-service:8085
+  notification-service:
+    url: http://notification-service:8084
+
+logging:
+  level:
+    com.projectsaas.auth: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Alternative : désactiver complètement la sécurité sur actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  security:
+    enabled: false  # Désactive la sécurité sur les endpoints management

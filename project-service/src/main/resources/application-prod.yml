@@ -1,0 +1,72 @@
+server:
+  port: ${SERVER_PORT:8082}
+
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:50}
+      minimum-idle: ${DB_POOL_MIN:10}
+      idle-timeout: 300000
+      connection-timeout: 20000
+      auto-commit: false
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: ${DATABASE_SCHEMA:project_db}
+
+  flyway:
+    user: ${FLYWAY_USER}
+    password: ${FLYWAY_PASSWORD}
+    schemas: ${DATABASE_SCHEMA:project_db}
+    default-schema: ${DATABASE_SCHEMA:project_db}
+
+# Services externes en production
+auth-service:
+  base-url: ${AUTH_SERVICE_URL}
+
+file-service:
+  base-url: ${FILE_SERVICE_URL}
+
+# WebSocket production
+websocket:
+  allowed-origins: ${WEBSOCKET_ORIGINS}
+
+# Cache active en production
+cache:
+  enabled: ${CACHE_ENABLED:true}
+  redis:
+    host: ${REDIS_HOST:localhost}
+    port: ${REDIS_PORT:6379}
+    timeout: ${REDIS_TIMEOUT:2000ms}
+
+# Logging minimal en production
+logging:
+  level:
+    com.projectsaas.project: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    root: WARN
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Monitoring complet en production
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  metrics:
+    export:
+      prometheus:
+        enabled: true

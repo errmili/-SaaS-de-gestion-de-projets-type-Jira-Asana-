@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  # Seulement PostgreSQL pour tests basiques
+  analytics-postgres:
+    image: postgres:15-alpine
+    container_name: analytics-postgres-dev
+    ports:
+      - "5435:5432"
+    environment:
+      POSTGRES_DB: analytics_db
+      POSTGRES_USER: analytics_user
+      POSTGRES_PASSWORD: analytics_pass
+    volumes:
+      - analytics_postgres_dev_data:/var/lib/postgresql/data
+
+volumes:
+  analytics_postgres_dev_data:

@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rappel d'échéance</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #ffc107 0%, #fd7e14 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .btn {
+            display: inline-block;
+            background: #ffc107;
+            color: #212529;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>⏰ Rappel d'échéance</h1>
+</div>
+
+<div class="content">
+    <p>Bonjour <strong th:text="${userName}">Utilisateur</strong>,</p>
+
+    <div class="warning-box">
+        <h3>🚨 Tâche arrivant à échéance</h3>
+        <p><strong>Tâche :</strong> <span th:text="${taskTitle}">Nom de la tâche</span></p>
+        <p><strong>Projet :</strong> <span th:text="${projectName}">Nom du projet</span></p>
+        <p><strong>Échéance :</strong> <span th:text="${deadline}">Date d'échéance</span></p>
+    </div>
+
+    <p>N'oubliez pas de terminer cette tâche avant la date limite !</p>
+
+    <a href="#" class="btn">Voir la tâche</a>
+
+    <div class="footer">
+        <p>Cet email a été envoyé automatiquement par ProjectSaaS</p>
+    </div>
+</div>
+</body>
+</html>

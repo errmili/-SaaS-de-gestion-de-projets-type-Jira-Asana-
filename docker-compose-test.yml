@@ -1,0 +1,457 @@
+# ==========================================
+# docker-compose-test.yml - Configuration professionnelle intégrée
+# ==========================================
+
+services:
+  # ===========================================
+  # INFRASTRUCTURE PARTAGÉE
+  # ===========================================
+
+  # Base de données principale
+  postgres:
+    image: postgres:15-alpine
+    container_name: saas-postgres-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: saas_project_db_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d
+    ports:
+      - "5432:5432"
+    networks:
+      - saas-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d saas_project_db_dev"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Base de données notification (séparée)
+  postgres-notification:
+    image: postgres:15-alpine
+    container_name: saas-postgres-notification
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: notification_db
+      POSTGRES_USER: notification_user
+      POSTGRES_PASSWORD: notification_pass
+    volumes:
+      - postgres_notification_data:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    networks:
+      - saas-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U notification_user -d notification_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Cache Redis partagé
+  redis:
+    image: redis:7-alpine
+    container_name: saas-redis-test
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis123}
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    networks:
+      - saas-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "redis123", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ===========================================
+  # KAFKA INFRASTRUCTURE (pour notifications)
+  # ===========================================
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.2.0
+    container_name: saas-zookeeper
+    restart: unless-stopped
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - saas-network
+    volumes:
+      - zookeeper_data:/var/lib/zookeeper
+
+  kafka:
+    image: confluentinc/cp-kafka:6.2.0
+    container_name: saas-kafka
+    restart: unless-stopped
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT_INTERNAL
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - saas-network
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+  # ===========================================
+  # MICROSERVICES
+  # ===========================================
+
+  # Auth Service
+  auth-service:
+    build:
+      context: ./auth-service
+      dockerfile: Dockerfile
+    container_name: saas-auth-service-test
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+      - JWT_SECRET=${JWT_SECRET}
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+    networks:
+      - saas-network
+
+  # Project Service
+  project-service:
+    build:
+      context: ./project-service
+      dockerfile: Dockerfile
+    container_name: saas-project-service-test
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+      - AUTH_SERVICE_URL=http://auth-service:8081
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    ports:
+      - "8082:8082"
+    networks:
+      - saas-network
+
+  # File Service
+  file-service:
+    build:
+      context: ./file-service
+      dockerfile: Dockerfile
+    container_name: saas-file-service-test
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+      - AUTH_SERVICE_URL=http://auth-service:8081
+      - MAX_FILE_SIZE=50MB
+      - UPLOAD_PATH=/app/temp-storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    ports:
+      - "8083:8083"
+    networks:
+      - saas-network
+    volumes:
+      - file_storage:/app/temp-storage
+
+  # Notification Service
+  notification-service:
+    build:
+      context: ./notification-service
+      dockerfile: Dockerfile
+    container_name: saas-notification-service-test
+    restart: unless-stopped
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_USERNAME=notification_user
+      - DB_PASSWORD=notification_pass
+      - DATABASE_URL=jdbc:postgresql://postgres-notification:5432/notification_db
+      - AUTH_SERVICE_URL=http://auth-service:8081
+      - REDIS_HOST=redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
+      - KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USERNAME=${SMTP_USERNAME}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+    depends_on:
+      postgres-notification:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+      auth-service:
+        condition: service_started
+    ports:
+      - "8084:8084"
+    networks:
+      - saas-network
+
+volumes:
+  postgres_data:
+    driver: local
+  postgres_notification_data:
+    driver: local
+  redis_data:
+    driver: local
+  file_storage:
+    driver: local
+  zookeeper_data:
+    driver: local
+  kafka_data:
+    driver: local
+
+networks:
+  saas-network:
+    driver: bridge
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+## ==========================================
+## docker-compose-test.yml - Tous les services
+## ==========================================
+#
+#services:
+#  # Base de données
+#  postgres:
+#    image: postgres:15-alpine
+#    container_name: saas-postgres-test
+#    restart: unless-stopped
+#    environment:
+#      POSTGRES_DB: saas_project_db_dev
+#      POSTGRES_USER: postgres
+#      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres123}
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+#      - ./init-scripts:/docker-entrypoint-initdb.d
+#    ports:
+#      - "5432:5432"
+#    networks:
+#      - saas-network
+#    healthcheck:
+#      test: ["CMD-SHELL", "pg_isready -U postgres -d saas_project_db_dev"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#
+#  # Cache Redis
+#  redis:
+#    image: redis:7-alpine
+#    container_name: saas-redis-test
+#    restart: unless-stopped
+#    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis123}
+#    volumes:
+#      - redis_data:/data
+#    ports:
+#      - "6379:6379"
+#    networks:
+#      - saas-network
+#    healthcheck:
+#      test: ["CMD", "redis-cli", "-a", "redis123", "ping"]
+#      interval: 10s
+#      timeout: 5s
+#      retries: 5
+#
+#  # Auth Service
+#  auth-service:
+#    build:
+#      context: ./auth-service
+#      dockerfile: Dockerfile
+#    container_name: saas-auth-service-test
+#    restart: unless-stopped
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - DB_USERNAME=postgres
+#      - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+#      - JWT_SECRET=${JWT_SECRET}
+#      - REDIS_HOST=redis
+#      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      redis:
+#        condition: service_healthy
+#    ports:
+#      - "8081:8081"
+#    networks:
+#      - saas-network
+#
+#  # Project Service
+#  project-service:
+#    build:
+#      context: ./project-service
+#      dockerfile: Dockerfile
+#    container_name: saas-project-service-test
+#    restart: unless-stopped
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - DB_USERNAME=postgres
+#      - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+#      - AUTH_SERVICE_URL=http://auth-service:8081
+#      - REDIS_HOST=redis
+#      - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      redis:
+#        condition: service_healthy
+#      auth-service:
+#        condition: service_started  # Changed from service_healthy
+#    ports:
+#      - "8082:8082"
+#    networks:
+#      - saas-network
+#
+#  # File Service
+#  file-service:
+#    build:
+#      context: ./file-service
+#      dockerfile: Dockerfile
+#    container_name: saas-file-service-test
+#    restart: unless-stopped
+#    environment:
+#      - SPRING_PROFILES_ACTIVE=docker
+#      - DB_USERNAME=postgres
+#      - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+#      - AUTH_SERVICE_URL=http://auth-service:8081
+#      - MAX_FILE_SIZE=50MB
+#      - UPLOAD_PATH=/app/temp-storage
+#    depends_on:
+#      postgres:
+#        condition: service_healthy
+#      auth-service:
+#        condition: service_started
+#    ports:
+#      - "8083:8083"
+#    networks:
+#      - saas-network
+#    volumes:
+#      - file_storage:/app/temp-storage
+#
+#  # ==========================================
+#  # SERVICES DÉSACTIVÉS TEMPORAIREMENT
+#  # ==========================================
+#
+#  # Analytics Service - COMMENTÉ pour tests avec 3 services
+#  # analytics-service:
+#  #   build:
+#  #     context: ./analytics-service
+#  #     dockerfile: Dockerfile
+#  #   container_name: saas-analytics-service-test
+#  #   restart: unless-stopped
+#  #   environment:
+#  #     - SPRING_PROFILES_ACTIVE=docker
+#  #     - DB_USERNAME=postgres
+#  #     - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+#  #     - AUTH_SERVICE_URL=http://auth-service:8081
+#  #     - PROJECT_SERVICE_URL=http://project-service:8082
+#  #     - REDIS_HOST=redis
+#  #     - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
+#  #   depends_on:
+#  #     postgres:
+#  #       condition: service_healthy
+#  #     redis:
+#  #       condition: service_healthy
+#  #     auth-service:
+#  #       condition: service_started
+#  #     project-service:
+#  #       condition: service_started
+#  #   ports:
+#  #     - "8085:8085"
+#  #   networks:
+#  #     - saas-network
+#  #   volumes:
+#  #     - analytics_reports:/app/reports
+#
+#  # Notification Service - COMMENTÉ pour tests avec 3 services
+#  # notification-service:
+#  #   build:
+#  #     context: ./notification-service
+#  #     dockerfile: Dockerfile
+#  #   container_name: saas-notification-service-test
+#  #   restart: unless-stopped
+#  #   environment:
+#  #     - SPRING_PROFILES_ACTIVE=docker
+#  #     - DB_USERNAME=postgres
+#  #     - DB_PASSWORD=${DB_PASSWORD:-postgres123}
+#  #     - AUTH_SERVICE_URL=http://auth-service:8081
+#  #     - REDIS_HOST=redis
+#  #     - REDIS_PASSWORD=${REDIS_PASSWORD:-redis123}
+#  #     - SMTP_HOST=${SMTP_HOST:-smtp.gmail.com}
+#  #     - SMTP_PORT=${SMTP_PORT:-587}
+#  #     - SMTP_USERNAME=${SMTP_USERNAME}
+#  #     - SMTP_PASSWORD=${SMTP_PASSWORD}
+#  #   depends_on:
+#  #     postgres:
+#  #       condition: service_healthy
+#  #     redis:
+#  #       condition: service_healthy
+#  #     auth-service:
+#  #       condition: service_started
+#  #   ports:
+#  #     - "8084:8084"
+#  #   networks:
+#  #     - saas-network
+#
+#volumes:
+#  postgres_data:
+#    driver: local
+#  redis_data:
+#    driver: local
+#  file_storage:
+#    driver: local
+#  # Volumes commentés pour les services désactivés
+#  # analytics_reports:
+#  #   driver: local
+#
+#networks:
+#  saas-network:
+#    driver: bridge

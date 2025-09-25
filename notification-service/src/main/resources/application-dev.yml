@@ -1,0 +1,85 @@
+server:
+  port: 8084
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/saas_project_db_dev?currentSchema=notification_db
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: notification_db
+
+  flyway:
+    user: postgres
+    password: root
+    schemas: notification_db
+    default-schema: notification_db
+    clean-disabled: false
+
+  # Configuration Kafka pour dev
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: notification-service
+
+  # Configuration Mail pour dev
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: jadcanada11@gmail.com
+    password: your-app-password
+    properties:
+      mail:
+        smtp:
+          trust: "*"
+        debug: true
+
+  # Configuration Redis pour dev
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+
+# Services externes desactives en dev
+auth-service:
+  base-url: http://localhost:8081
+
+# Configuration notification pour dev
+notification:
+  websocket:
+    allowed-origins: "*"
+
+# Eureka desactive en dev
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+# Logging detaille pour dev
+logging:
+  level:
+    com.projectsaas.notification: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.kafka: DEBUG
+    org.springframework.mail: DEBUG
+    org.flywaydb: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

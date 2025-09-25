@@ -1,0 +1,74 @@
+server:
+  port: 8083
+
+spring:
+  profiles:
+    active: dev
+  application:
+    name: file-service
+
+  # ✅ NOUVELLE CONFIGURATION POSTGRESQL
+  datasource:
+    url: jdbc:postgresql://localhost:5432/saas_project_db_dev?currentSchema=file_db
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+  # ✅ CONFIGURATION JPA POSTGRESQL
+  jpa:
+    hibernate:
+      ddl-auto: create  # create la première fois, puis update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: file_db
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 100MB
+
+  # DÉSACTIVER REDIS pour les tests
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+# Configuration auth service
+auth-service:
+  base-url: http://localhost:8081
+
+# Configuration de stockage
+storage:
+  provider: local
+  local:
+    base-path: ./temp-storage
+
+logging:
+  level:
+    com.projectsaas.file: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG  # Pour voir les requêtes SQL
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always

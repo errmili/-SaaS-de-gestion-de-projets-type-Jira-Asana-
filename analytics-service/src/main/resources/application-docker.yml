@@ -1,0 +1,46 @@
+# ==========================================
+# analytics-service/application-docker.yml
+# ==========================================
+server:
+  port: 8085
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/saas_project_db_dev?currentSchema=analytics_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: analytics_db
+
+  flyway:
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    schemas: analytics_db
+    default-schema: analytics_db
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
+# Services URLs
+services:
+  auth-service:
+    url: ${AUTH_SERVICE_URL}
+  project-service:
+    url: ${PROJECT_SERVICE_URL}
+
+logging:
+  level:
+    com.projectsaas.analytics: INFO
+    org.hibernate.SQL: WARN

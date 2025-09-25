@@ -1,0 +1,39 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5434/notification_db
+    username: notification_user
+    password: notification_pass
+    driver-class-name: org.postgresql.Driver
+
+  # AJOUT: Configuration Flyway corrigée
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    validate-on-migrate: false
+    clean-disabled: false
+    user: notification_user      # ✅ Utilise les mêmes credentials que Docker
+    password: notification_pass  # ✅ Utilise les mêmes credentials que Docker
+    schemas: notification_db
+    default-schema: notification_db
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+
+# Configuration Auth Service
+auth-service:
+  base-url: http://localhost:8081
+
+# ✅ AJOUT IMPORTANT - DÉSACTIVER EUREKA POUR LES TESTS
+eureka:
+  client:
+    enabled: false
+    register-with-eureka: false
+    fetch-registry: false
+
+logging:
+  level:
+    com.projectsaas.notification: DEBUG
+    org.flywaydb: DEBUG
+    org.springframework.security: DEBUG

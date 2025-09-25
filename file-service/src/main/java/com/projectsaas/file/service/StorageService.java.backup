@@ -1,0 +1,65 @@
+package com.projectsaas.file.service;
+import com.projectsaas.file.storage.StorageProvider;
+import com.projectsaas.file.storage.StorageStats;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.io.InputStream;
+import java.time.Duration;
+
+@Service
+@Slf4j
+public class StorageService {
+
+    private final StorageProvider storageProvider;
+
+    @Value("${storage.provider:local}")
+    private String providerType;
+
+    public StorageService(@Qualifier("${storage.provider:local}") StorageProvider storageProvider) {
+        this.storageProvider = storageProvider;
+    }
+
+    public String storeFile(InputStream inputStream, String fileName, String tenantId) {
+        log.info("Storing file {} for tenant {} using {} provider", fileName, tenantId, providerType);
+        return storageProvider.store(inputStream, fileName, tenantId);
+    }
+
+    public InputStream retrieveFile(String storedPath) {
+        log.debug("Retrieving file: {}", storedPath);
+        return storageProvider.retrieve(storedPath);
+    }
+
+    public void deleteFile(String storedPath) {
+        log.info("Deleting file: {}", storedPath);
+        storageProvider.delete(storedPath);
+    }
+
+    public String generateDownloadUrl(String storedPath, Duration expiration) {
+        log.debug("Generating download URL for: {}", storedPath);
+        return storageProvider.generatePresignedUrl(storedPath, expiration);
+    }
+
+    public boolean fileExists(String storedPath) {
+        return storageProvider.exists(storedPath);
+    }
+
+    public long getFileSize(String storedPath) {
+        return storageProvider.getFileSize(storedPath);
+    }
+
+    public void copyFile(String sourcePath, String destPath) {
+        log.info("Copying file from {} to {}", sourcePath, destPath);
+        storageProvider.copy(sourcePath, destPath);
+    }
+
+    public StorageStats getStorageStats() {
+        return storageProvider.getStats();
+    }
+
+    public String getProviderType() {
+        return providerType;
+    }
+}

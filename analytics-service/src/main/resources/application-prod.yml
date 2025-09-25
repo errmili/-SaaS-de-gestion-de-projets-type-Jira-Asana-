@@ -1,0 +1,67 @@
+server:
+  port: ${SERVER_PORT:8085}
+
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:50}
+      minimum-idle: ${DB_POOL_MIN:10}
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: ${DATABASE_SCHEMA:analytics_db}
+
+  flyway:
+    user: ${FLYWAY_USER}
+    password: ${FLYWAY_PASSWORD}
+    schemas: ${DATABASE_SCHEMA:analytics_db}
+    default-schema: ${DATABASE_SCHEMA:analytics_db}
+
+  # Configuration Kafka pour production
+  kafka:
+    bootstrap-servers: ${KAFKA_SERVERS}
+    consumer:
+      group-id: ${KAFKA_GROUP_ID:analytics-service}
+
+# Configuration Eureka pour production
+eureka:
+  client:
+    enabled: ${EUREKA_ENABLED:true}
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+
+# Configuration analytics pour production
+analytics:
+  calculation:
+    interval: ${CALCULATION_INTERVAL:600000}
+  reports:
+    output-dir: ${REPORTS_DIR:/app/reports}
+    auto-generation: ${AUTO_GENERATION:true}
+  retention:
+    raw-data-days: ${RAW_DATA_RETENTION:90}
+    aggregated-data-days: ${AGGREGATED_DATA_RETENTION:365}
+  performance:
+    batch-size: ${BATCH_SIZE:1000}
+    cache-ttl: ${CACHE_TTL:300}
+
+# Logging minimal en production
+logging:
+  level:
+    com.projectsaas.analytics: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    root: WARN
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

@@ -1,0 +1,139 @@
+# ===========================================
+# CONFIGURATION COMMUNE - TOUS ENVIRONNEMENTS
+# ===========================================
+spring:
+  profiles:
+    active: dev
+  application:
+    name: auth-service
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    database: postgresql
+
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+# Multi-tenant config (commun)
+tenant:
+  resolver:
+    type: ${TENANT_RESOLVER_TYPE:SUBDOMAIN}
+    header-name: X-Tenant-ID
+
+# Management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized
+
+springdoc:
+  default-produces-media-type: application/json
+
+
+
+
+
+
+
+
+
+#   Old
+## ===========================================
+## application.yml - Configuration principale
+## ===========================================
+#server:
+#  port: 8081
+#
+#spring:
+#  application:
+#    name: auth-service
+#
+#  datasource:
+#    url: jdbc:postgresql://localhost:5432/saas_project_db_dev?currentSchema=auth_db
+##    url: jdbc:postgresql://localhost:5432/saas_project_db_dev
+#    username: ${DB_USERNAME:postgres}
+#    password: ${DB_PASSWORD:root}
+#    driver-class-name: org.postgresql.Driver
+#
+#    hikari:
+#      maximum-pool-size: 20
+#      minimum-idle: 5
+#      idle-timeout: 300000
+#      connection-timeout: 20000
+#
+#  jpa:
+#    hibernate:
+#      ddl-auto: validate  # ou 'none' en production
+#    show-sql: false
+#    database: postgresql
+#    database-platform: org.hibernate.dialect.PostgreSQLDialect
+#    properties:
+#      hibernate:
+#        dialect: org.hibernate.dialect.PostgreSQLDialect
+#        format_sql: true
+#        default_schema: auth_db
+#        jdbc:
+#          batch_size: 20
+#        order_inserts: true
+#        order_updates: true
+#
+#  flyway:
+#    enabled: true
+#    locations: classpath:db/migration
+##    baseline-on-migrate: true
+#    user: postgres
+#    password: root
+#    schemas: auth_db
+#    default-schema: auth_db
+#
+## JWT Configuration -(en millisecondes)
+#jwt:
+#  secret: ${JWT_SECRET:mySecretKey12345678901234567890123456789012345678901234567890}
+#  expiration: 86400000    # 24 heures en millisecondes
+#  refresh-expiration: 604800000  # 7 jours en millisecondes
+#
+## Multi-tenant config
+#tenant:
+#  resolver:
+#    type: SUBDOMAIN # ou HEADER
+#    header-name: X-Tenant-ID
+#
+#logging:
+#  level:
+#    com.projectsaas.auth: DEBUG
+#    org.springframework.security: INFO
+#    org.hibernate.SQL: INFO
+#    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+#    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+#
+#management:
+#  endpoints:
+#    web:
+#    exposure:
+#      include: health,info,metrics
+#  endpoint:
+#    health:
+#      show-details: when_authorized
+#
+#springdoc:
+#  default-produces-media-type: application/json
+
+
+

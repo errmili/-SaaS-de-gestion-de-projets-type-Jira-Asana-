@@ -1,0 +1,57 @@
+server:
+  port: 8082
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/saas_project_db_dev?currentSchema=project_db
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      auto-commit: false
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: project_db
+
+  flyway:
+    user: postgres
+    password: root
+    schemas: project_db
+    default-schema: project_db
+
+# Services externes en local
+auth-service:
+  base-url: http://localhost:8081
+
+file-service:
+  base-url: http://localhost:8084
+
+# WebSocket developement
+websocket:
+  allowed-origins: "*"
+
+# Cache desactive en dev
+cache:
+  enabled: false
+
+# Logging detaille pour dev
+logging:
+  level:
+    com.projectsaas.project: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

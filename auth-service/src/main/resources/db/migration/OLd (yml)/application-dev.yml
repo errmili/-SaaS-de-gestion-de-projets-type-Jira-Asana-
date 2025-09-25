@@ -1,0 +1,31 @@
+## ===========================================
+## application-dev.yml - Configuration developpement
+## ===========================================
+#spring:
+#  config:
+#    activate:
+#      on-profile: dev   # ← Condition : SEULEMENT si profil "dev" est actif
+#
+#  # Base de donnees H2 pour tests rapides (optionnel)
+#  # datasource:
+#  #   url: jdbc:h2:mem:testdb
+#  #   driver-class-name: org.h2.Driver
+#  #   username: sa
+#  #   password: password
+#
+#  jpa:
+#    show-sql: true
+#    properties:
+#      hibernate:
+#        format_sql: true
+#
+#logging:
+#  level:
+#    com.projectsaas.auth: DEBUG
+#    org.springframework.security: DEBUG
+#    org.hibernate.SQL: DEBUG
+#
+## JWT avec expiration plus courte en dev
+#jwt:
+#  expiration: 3600000 # 1 heure
+#  refresh-expiration: 86400000 # 24 heures

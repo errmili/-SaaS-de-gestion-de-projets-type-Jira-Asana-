@@ -1,0 +1,55 @@
+# docker-compose.yml - À placer à la racine du projet auth-service
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL pour Auth Service
+  auth-db:
+    image: postgres:15-alpine
+    container_name: auth-postgres
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: auth_user
+      POSTGRES_PASSWORD: auth_pass123
+    ports:
+      - "5432:5432"
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+      - ./docker/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - project-saas-network
+
+  # Redis pour les sessions et cache
+  redis:
+    image: redis:7-alpine
+    container_name: auth-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - project-saas-network
+
+  # pgAdmin pour gérer la BDD (optionnel)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: auth-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@projectsaas.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - project-saas-network
+    depends_on:
+      - auth-db
+
+volumes:
+  auth_db_data:
+  redis_data:
+  pgadmin_data:
+
+networks:
+  project-saas-network:
+    driver: bridge

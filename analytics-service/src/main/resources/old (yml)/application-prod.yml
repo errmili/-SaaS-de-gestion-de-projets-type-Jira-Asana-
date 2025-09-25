@@ -1,0 +1,23 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST}:5432/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 50
+
+  jpa:
+    show-sql: false
+
+analytics:
+  calculation:
+    interval: 600000 # 10 minutes for prod
+
+logging:
+  level:
+    com.projectsaas.analytics: INFO
+    org.hibernate.SQL: WARN

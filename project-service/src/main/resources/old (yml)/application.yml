@@ -1,0 +1,124 @@
+# ===========================================
+# application.yml - Configuration principale Project Service
+# ===========================================
+server:
+  port: 8082
+
+spring:
+  application:
+    name: project-service
+
+  # Configuration base de données
+  datasource:
+    url: jdbc:postgresql://localhost:5432/saas_project_db_dev?currentSchema=project_db
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:root}
+    driver-class-name: org.postgresql.Driver
+
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      auto-commit: false  # ← IMPORTANT: Désactiver l'autocommit
+
+  # Configuration JPA
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        default_schema: project_db
+        jdbc:
+          batch_size: 20
+          fetch_size: 20  # Optimisation des requêtes
+        order_inserts: true
+        order_updates: true
+        connection:
+          provider_disables_autocommit: true  # Performance
+        cache:
+          use_second_level_cache: false  # Désactivé pour l'instant
+
+    # Optimisations
+    open-in-view: false  # Évite les requêtes lazy en vue
+
+
+  # Configuration Flyway
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    user: postgres
+    password: root
+    schemas: project_db
+    default-schema: project_db
+
+
+## Configuration des services externes
+#auth-service:
+#  base-url: ${AUTH_SERVICE_URL:http://localhost:8081}
+#
+#file-service:
+#  base-url: ${FILE_SERVICE_URL:http://localhost:8084}
+
+## Configuration WebSocket
+#websocket:
+#  enabled: true
+#  allowed-origins: ${WEBSOCKET_ORIGINS:http://localhost:3000,http://localhost:4200}
+
+## Configuration de cache (Redis optionnel)
+#cache:
+#  enabled: ${CACHE_ENABLED:false}
+#  redis:
+#    host: ${REDIS_HOST:localhost}
+#    port: ${REDIS_PORT:6379}
+#    timeout: 2000ms
+
+# Configuration logging
+#logging:
+#  level:
+#    com.projectsaas.project: DEBUG
+#    org.springframework.security: INFO
+#    org.hibernate.SQL: INFO
+#    org.hibernate.type.descriptor.sql.BasicBinder: INFO
+#  pattern:
+#    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+#    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+logging:
+  level:
+    com.projectsaas.project: DEBUG
+    org.springframework.security: INFO
+    org.hibernate.SQL: DEBUG  # Pour voir les requêtes SQL
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+# Configuration actuator (monitoring)
+#management:
+#  endpoints:
+#    web:
+#      exposure:
+#        include: health,info,metrics,prometheus
+#  endpoint:
+#    health:
+#      show-details: when_authorized
+#  metrics:
+#    export:
+#      prometheus:
+#        enabled: true
+
+# Configuration des limites
+#app:
+##  limits:
+##    max-tasks-per-project: ${MAX_TASKS_PER_PROJECT:1000}
+##    max-attachments-per-task: ${MAX_ATTACHMENTS_PER_TASK:10}
+##    max-file-size: ${MAX_FILE_SIZE:10MB}
+##    max-projects-per-tenant: ${MAX_PROJECTS_PER_TENANT:50}
+app:
+  limits:
+    max-tasks-per-project: 1000
+    max-attachments-per-task: 10
+    max-file-size: 10MB
+    max-projects-per-tenant: 50

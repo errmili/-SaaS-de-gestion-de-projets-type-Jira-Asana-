@@ -1,0 +1,64 @@
+# ==========================================
+# application-docker.yml - Project Service Docker
+# ==========================================
+server:
+  port: 8082
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: jdbc:postgresql://postgres:5432/saas_project_db_dev?currentSchema=project_db
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      auto-commit: false
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: project_db
+
+  flyway:
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    schemas: project_db
+    default-schema: project_db
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
+# Services externes
+auth-service:
+  base-url: ${AUTH_SERVICE_URL}
+
+file-service:
+  base-url: http://file-service:8083
+
+# WebSocket configuration
+websocket:
+  allowed-origins: "*"
+
+# Cache configuration
+cache:
+  enabled: true
+
+logging:
+  level:
+    com.projectsaas.project: INFO
+    org.springframework.security: INFO
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nouvelle tâche assignée</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 0 0 10px 10px;
+        }
+        .task-info {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .btn {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <h1>📋 Nouvelle tâche assignée</h1>
+</div>
+
+<div class="content">
+    <p>Bonjour <strong th:text="${userName}">Utilisateur</strong>,</p>
+
+    <p>Vous avez été assigné à une nouvelle tâche dans votre projet !</p>
+
+    <div class="task-info">
+        <h3 th:text="${taskTitle}">Nom de la tâche</h3>
+        <p><strong>Projet :</strong> <span th:text="${projectName}">Nom du projet</span></p>
+        <p><strong>Assigné par :</strong> <span th:text="${assignedBy}">Nom de l'assigneur</span></p>
+        <p th:if="${deadline}"><strong>Échéance :</strong> <span th:text="${deadline}">Date d'échéance</span></p>
+    </div>
+
+    <a href="#" class="btn">Voir la tâche</a>
+
+    <p>Vous pouvez accéder à votre tableau de bord pour voir tous les détails de cette tâche.</p>
+
+    <div class="footer">
+        <p>Cet email a été envoyé automatiquement par ProjectSaaS</p>
+        <p>Si vous ne souhaitez plus recevoir ces notifications, vous pouvez les désactiver dans vos préférences.</p>
+    </div>
+</div>
+</body>
+</html>

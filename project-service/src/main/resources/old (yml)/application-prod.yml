@@ -1,0 +1,35 @@
+# ===========================================
+# application-prod.yml - Configuration production
+# ===========================================
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+
+  jpa:
+    show-sql: false
+
+logging:
+  level:
+    com.projectsaas.project: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+
+# Services externes
+auth-service:
+  base-url: ${AUTH_SERVICE_URL}
+
+file-service:
+  base-url: ${FILE_SERVICE_URL}
+
+# Cache activé en production
+cache:
+  enabled: true

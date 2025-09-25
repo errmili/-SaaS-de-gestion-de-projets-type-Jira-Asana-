@@ -1,0 +1,65 @@
+server:
+  port: 8084
+
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: notification_db
+
+  flyway:
+    user: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    schemas: notification_db
+    default-schema: notification_db
+
+  mail:
+    host: ${SMTP_HOST}
+    port: ${SMTP_PORT}
+    username: ${SMTP_USERNAME}
+    password: ${SMTP_PASSWORD}
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+      password: ${REDIS_PASSWORD}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    consumer:
+      group-id: notification-service
+
+# Services externes
+auth-service:
+  base-url: ${AUTH_SERVICE_URL}
+
+logging:
+  level:
+    com.projectsaas.notification: INFO
+    org.hibernate.SQL: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: always
+  security:
+    enabled: false

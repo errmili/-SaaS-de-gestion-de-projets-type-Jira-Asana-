@@ -1,0 +1,81 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_SIZE:50}
+      minimum-idle: ${DB_POOL_MIN:10}
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: ${DATABASE_SCHEMA:auth_db}
+
+  flyway:
+    user: ${FLYWAY_USER}
+    password: ${FLYWAY_PASSWORD}
+    schemas: ${DATABASE_SCHEMA:auth_db}
+    default-schema: ${DATABASE_SCHEMA:auth_db}
+
+server:
+  port: ${SERVER_PORT:8080}
+
+# JWT PROD (variables d'environnement obligatoires)
+jwt:
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION:86400000}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+logging:
+  level:
+    com.projectsaas.auth: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+    root: WARN
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+
+
+
+
+
+## ===========================================
+## application-prod.yml - Configuration production
+## ===========================================
+#spring:
+#  config:
+#    activate:
+#      on-profile: prod
+#
+#  datasource:
+#    url: ${DATABASE_URL}
+#    username: ${DATABASE_USERNAME}
+#    password: ${DATABASE_PASSWORD}
+#    hikari:
+#      maximum-pool-size: 50
+#      minimum-idle: 10
+#
+#  jpa:
+#    show-sql: false
+#
+#logging:
+#  level:
+#    com.projectsaas.auth: INFO
+#    org.springframework.security: WARN
+#    org.hibernate: WARN
+#
+## JWT production
+#jwt:
+#  secret: ${JWT_SECRET}
+#  expiration: ${JWT_EXPIRATION:86400000}
+#  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}

@@ -1,0 +1,40 @@
+# ===========================================
+# CONFIGURATION COMMUNE - TOUS ENVIRONNEMENTS
+# ===========================================
+spring:
+  application:
+    name: file-service
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+
+  # Desactiver Redis par defaut
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
+
+# Configuration par defaut
+storage:
+  provider: ${STORAGE_PROVIDER:local}
+
+antivirus:
+  enabled: ${ANTIVIRUS_ENABLED:false}
+
+# Configuration monitoring
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized

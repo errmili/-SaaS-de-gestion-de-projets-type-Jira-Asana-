@@ -1,0 +1,5 @@
+tjr pout projet : saas
+
+service notification :
+	1: docker-compose up -d    /    docker-compose ps   / docker-compose down -v
+	2: soit : java -jar notification-service.jar --spring.profiles.active=local        ou        mvn spring-boot:run -Dspring-boot.run.profiles=local

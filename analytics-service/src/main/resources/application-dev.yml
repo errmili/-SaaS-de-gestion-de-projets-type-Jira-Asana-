@@ -1,0 +1,65 @@
+server:
+  port: 8085
+
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+  datasource:
+    url: jdbc:postgresql://localhost:5432/saas_project_db_dev?currentSchema=analytics_db
+    username: postgres
+    password: root
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        default_schema: analytics_db
+
+  flyway:
+    user: postgres
+    password: root
+    schemas: analytics_db
+    default-schema: analytics_db
+    clean-disabled: false
+
+  # Configuration Kafka pour dev
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: analytics-service-dev
+
+# Configuration Eureka pour dev
+eureka:
+  client:
+    enabled: false
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+# Configuration analytics pour dev
+analytics:
+  calculation:
+    interval: 60000
+  reports:
+    auto-generation: true
+
+# Logging detaille pour dev
+logging:
+  level:
+    com.projectsaas.analytics: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.springframework.kafka: DEBUG
+    org.flywaydb: DEBUG
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

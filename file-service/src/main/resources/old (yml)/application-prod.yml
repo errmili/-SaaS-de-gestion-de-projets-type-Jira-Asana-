@@ -1,0 +1,42 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+  datasource:
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+
+  jpa:
+    show-sql: false
+
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+logging:
+  level:
+    com.projectsaas.file: INFO
+    org.springframework.security: WARN
+    org.hibernate: WARN
+
+# Services externes
+auth-service:
+  base-url: ${AUTH_SERVICE_URL}
+
+project-service:
+  base-url: ${PROJECT_SERVICE_URL}
+
+# Stockage cloud en production
+storage:
+  provider: ${STORAGE_PROVIDER:s3}
+
+# Antivirus activé en production
+antivirus:
+  enabled: true
+  engine: clamav

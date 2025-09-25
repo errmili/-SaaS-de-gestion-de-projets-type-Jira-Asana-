@@ -1,0 +1,51 @@
+# ===========================================
+# CONFIGURATION COMMUNE - TOUS ENVIRONNEMENTS
+# ===========================================
+spring:
+  profiles:
+    active: dev
+  application:
+    name: project-service
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 20
+          fetch_size: 20
+        order_inserts: true
+        order_updates: true
+        connection:
+          provider_disables_autocommit: true
+        cache:
+          use_second_level_cache: false
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+# Configuration des limites par defaut
+app:
+  limits:
+    max-tasks-per-project: ${MAX_TASKS_PER_PROJECT:1000}
+    max-attachments-per-task: ${MAX_ATTACHMENTS_PER_TASK:10}
+    max-file-size: ${MAX_FILE_SIZE:10MB}
+    max-projects-per-tenant: ${MAX_PROJECTS_PER_TENANT:50}
+
+# Configuration WebSocket
+websocket:
+  enabled: ${WEBSOCKET_ENABLED:true}
+
+# Configuration actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: when_authorized

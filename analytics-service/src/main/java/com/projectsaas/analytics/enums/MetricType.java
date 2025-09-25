@@ -1,0 +1,15 @@
+package com.projectsaas.analytics.enums;
+
+public enum MetricType {
+    PROJECT_CREATED,
+    PROJECT_COMPLETED,
+    PROJECT_UPDATED,
+    TASK_CREATED,
+    TASK_ASSIGNED,
+    TASK_COMPLETED,
+    USER_LOGIN,
+    USER_ACTIVITY,
+    NOTIFICATION_SENT,
+    FILE_UPLOADED,
+    PERFORMANCE_METRIC
+}
