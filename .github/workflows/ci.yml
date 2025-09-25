@@ -20,7 +20,7 @@ jobs:
   # JOB 1: TESTS UNITAIRES
   # ==========================================
   tests:
-    name: 📦 Compilation Services
+    name: 🧪 Tests Unitaires
     runs-on: ubuntu-latest
 
     services:
@@ -63,25 +63,25 @@ jobs:
         run: |
           cd auth-service
           chmod +x mvnw
-          ./mvnw clean compile -DskipTests=true
+          ./mvnw clean test
 
       - name: 🧪 Tests Project Service
         run: |
           cd project-service
           chmod +x mvnw
-          ./mvnw clean compile -DskipTests=true
+          ./mvnw clean test
 
       - name: 🧪 Tests File Service
         run: |
           cd file-service
           chmod +x mvnw
-          ./mvnw clean compile -DskipTests=true
+          ./mvnw clean test
 
       - name: 🧪 Tests Notification Service
         run: |
           cd notification-service
           chmod +x mvnw
-          ./mvnw clean compile -DskipTests=true
+          ./mvnw clean test
 
     # Analytics service (si tu l'actives)
     # - name: 🧪 Tests Analytics Service
