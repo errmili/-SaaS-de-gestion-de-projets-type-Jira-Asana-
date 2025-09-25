@@ -246,6 +246,6 @@ jobs:
       - name: ❌ Échec - Investigation nécessaire
         if: needs.tests.result == 'failure' || needs.build.result == 'failure'
         run: |
-          echo "❌ Pipeline CI échoué !"
+          echo "❌ Pipeline CI échoué !!"
           echo "🔍 Vérifier les logs des jobs échoués"
           exit 1
