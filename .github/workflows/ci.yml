@@ -63,25 +63,25 @@ jobs:
         run: |
           cd auth-service
           chmod +x mvnw
-          ./mvnw clean test -Dspring.profiles.active=none -DskipITs=true
+          ./mvnw clean test -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
 
       - name: 🧪 Tests Project Service
         run: |
           cd project-service
           chmod +x mvnw
-          ./mvnw clean test -Dspring.profiles.active=none -DskipITs=true
+          ./mvnw clean test -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
 
       - name: 🧪 Tests File Service
         run: |
           cd file-service
           chmod +x mvnw
-          ./mvnw clean test -Dspring.profiles.active=none -DskipITs=true
+          ./mvnw clean test -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
 
       - name: 🧪 Tests Notification Service
         run: |
           cd notification-service
           chmod +x mvnw
-          ./mvnw clean test -Dspring.profiles.active=none -DskipITs=true
+          ./mvnw clean test -Dspring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration,org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
 
     # Analytics service (si tu l'actives)
     # - name: 🧪 Tests Analytics Service
