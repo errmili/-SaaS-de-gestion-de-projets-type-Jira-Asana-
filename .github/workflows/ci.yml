@@ -23,6 +23,31 @@ jobs:
     name: 🧪 Tests Unitaires
     runs-on: ubuntu-latest
 
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_DB: saas_test_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres123
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+      redis:
+        image: redis:7-alpine
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
     steps:
       - name: 📥 Checkout du code
         uses: actions/checkout@v4
@@ -38,25 +63,25 @@ jobs:
         run: |
           cd auth-service
           chmod +x mvnw
-          ./mvnw clean test
+          ./mvnw clean test -Dspring.profiles.active=none -DskipITs=true
 
       - name: 🧪 Tests Project Service
         run: |
           cd project-service
           chmod +x mvnw
-          ./mvnw clean test
+          ./mvnw clean test -Dspring.profiles.active=none -DskipITs=true
 
       - name: 🧪 Tests File Service
         run: |
           cd file-service
           chmod +x mvnw
-          ./mvnw clean test
+          ./mvnw clean test -Dspring.profiles.active=none -DskipITs=true
 
       - name: 🧪 Tests Notification Service
         run: |
           cd notification-service
           chmod +x mvnw
-          ./mvnw clean test
+          ./mvnw clean test -Dspring.profiles.active=none -DskipITs=true
 
     # Analytics service (si tu l'actives)
     # - name: 🧪 Tests Analytics Service
