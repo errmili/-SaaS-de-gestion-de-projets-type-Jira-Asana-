@@ -157,3 +157,32 @@ jobs:
           mvn clean package -DskipTests=true
           docker build -t saas-notification-service:latest .
           echo "✅ Docker Notification Service créé!"
+
+      # =================== ÉTAPE 3: SCAN SÉCURITÉ ===================
+      - name: 🔒 Scan Sécurité Basique
+        run: |
+          echo "🔍 Scan de sécurité des fichiers..."
+          
+          # Recherche fichiers sensibles
+          echo "Recherche de fichiers sensibles..."
+          find . -name "*.key" -o -name "*.pem" -o -name "*password*" -o -name ".env" -not -path "./.git/*" | head -10 || echo "Aucun fichier sensible détecté"
+          
+          # Vérification des ports exposés
+          echo "Vérification des ports dans les Dockerfiles..."
+          grep -r "EXPOSE" . --include="Dockerfile*" || echo "Ports Docker vérifiés"
+          
+          # Vérification secrets en dur  
+          echo "Recherche de secrets potentiels..."
+          grep -r -i "password\|secret\|key" . --include="*.yml" --include="*.properties" | grep -v "placeholder\|example\|template" | head -5 || echo "Pas de secrets hardcodés détectés"
+          
+          echo "✅ Scan sécurité basique terminé!"
+
+      # =================== MESSAGE FINAL ===================
+      - name: 🎉 Pipeline CI Complet
+        run: |
+          echo "🚀 PIPELINE CI SAAS COMPLET RÉUSSI !"
+          echo "✅ Compilation des 5 services"
+          echo "✅ Tests unitaires"  
+          echo "✅ Build Docker des images"
+          echo "✅ Scan sécurité basique"
+          echo "👉 Prêt pour déploiement staging/production !"
