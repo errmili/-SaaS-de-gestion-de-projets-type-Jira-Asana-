@@ -81,3 +81,79 @@ jobs:
         run: |
           echo "🎉 Tous les services SaaS ont été compilés avec succès!"
           echo "🚀 Ton architecture microservices SaaS est prête!"
+
+      # =================== ÉTAPE 2: BUILD DOCKER IMAGES ===================
+      - name: 🐳 Setup Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: 🏗️ Build Docker Auth Service
+        run: |
+          echo "🐳 Build Docker Auth Service..."
+          cd auth-service
+          if [ ! -f Dockerfile ]; then
+            echo "Création Dockerfile basique..."
+            cat > Dockerfile << 'EOF'
+          FROM openjdk:17-jre-slim
+          WORKDIR /app  
+          COPY target/*.jar app.jar
+          EXPOSE 8081
+          ENTRYPOINT ["java", "-jar", "app.jar"]
+          EOF
+          fi
+          mvn clean package -DskipTests=true
+          docker build -t saas-auth-service:latest .
+          echo "✅ Docker Auth Service créé!"
+
+      - name: 🏗️ Build Docker Project Service
+        run: |
+          echo "🐳 Build Docker Project Service..."
+          cd project-service
+          if [ ! -f Dockerfile ]; then
+            echo "Création Dockerfile basique..."
+            cat > Dockerfile << 'EOF'
+          FROM openjdk:17-jre-slim
+          WORKDIR /app
+          COPY target/*.jar app.jar  
+          EXPOSE 8082
+          ENTRYPOINT ["java", "-jar", "app.jar"]
+          EOF
+          fi
+          mvn clean package -DskipTests=true
+          docker build -t saas-project-service:latest .
+          echo "✅ Docker Project Service créé!"
+
+      - name: 🏗️ Build Docker File Service
+        run: |
+          echo "🐳 Build Docker File Service..."
+          cd file-service
+          if [ ! -f Dockerfile ]; then
+            echo "Création Dockerfile basique..."  
+            cat > Dockerfile << 'EOF'
+          FROM openjdk:17-jre-slim
+          WORKDIR /app
+          COPY target/*.jar app.jar
+          EXPOSE 8083  
+          ENTRYPOINT ["java", "-jar", "app.jar"]
+          EOF
+          fi
+          mvn clean package -DskipTests=true
+          docker build -t saas-file-service:latest .
+          echo "✅ Docker File Service créé!"
+
+      - name: 🏗️ Build Docker Notification Service
+        run: |
+          echo "🐳 Build Docker Notification Service..."
+          cd notification-service  
+          if [ ! -f Dockerfile ]; then
+            echo "Création Dockerfile basique..."
+            cat > Dockerfile << 'EOF'
+          FROM openjdk:17-jre-slim
+          WORKDIR /app
+          COPY target/*.jar app.jar
+          EXPOSE 8084
+          ENTRYPOINT ["java", "-jar", "app.jar"] 
+          EOF
+          fi
+          mvn clean package -DskipTests=true
+          docker build -t saas-notification-service:latest .
+          echo "✅ Docker Notification Service créé!"
