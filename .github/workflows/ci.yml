@@ -40,36 +40,41 @@ jobs:
         run: |
           echo "🚀 Build du Auth Service..."
           cd auth-service
-          mvn clean compile -DskipTests=true
-          echo "✅ Auth Service compilé!"
+          mvn clean compile
+          mvn test -DskipTests=false
+          echo "✅ Auth Service compilé et testé!"
 
       - name: 🔨 Build Project Service
         run: |
           echo "🚀 Build du Project Service..."
           cd project-service
-          mvn clean compile -DskipTests=true
-          echo "✅ Project Service compilé!"
+          mvn clean compile  
+          mvn test -DskipTests=false
+          echo "✅ Project Service compilé et testé!"
 
       - name: 🔨 Build File Service
         run: |
           echo "🚀 Build du File Service..."
           cd file-service
-          mvn clean compile -DskipTests=true
-          echo "✅ File Service compilé!"
+          mvn clean compile
+          mvn test -DskipTests=false
+          echo "✅ File Service compilé et testé!"
 
       - name: 🔨 Build Notification Service
         run: |
           echo "🚀 Build du Notification Service..."
           cd notification-service
-          mvn clean compile -DskipTests=true
-          echo "✅ Notification Service compilé!"
+          mvn clean compile
+          mvn test -DskipTests=false
+          echo "✅ Notification Service compilé et testé!"
 
       - name: 🔨 Build Analytics Service
         run: |
           echo "🚀 Build du Analytics Service..."
           cd analytics-service
-          mvn clean compile -DskipTests=true
-          echo "✅ Analytics Service compilé!"
+          mvn clean compile
+          mvn test -DskipTests=false
+          echo "✅ Analytics Service compilé et testé!"
 
       # Étape 5: Message de fin
       - name: 🎉 Build terminé
