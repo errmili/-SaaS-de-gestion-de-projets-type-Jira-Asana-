@@ -3,7 +3,7 @@
 # Fichier: .github/workflows/deploy-production.yml
 # ==========================================
 
-name: 🏭 Deploy Production
+name: 🏭 Deploy Production 🏭
 
 on:
   push:
