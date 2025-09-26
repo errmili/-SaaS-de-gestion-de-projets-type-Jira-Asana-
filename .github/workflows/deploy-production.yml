@@ -289,7 +289,7 @@ jobs:
       - name: 🎊 Succès Production
         if: success()
         run: |
-          echo "🎊 PRODUCTION DEPLOYÉE AVEC SUCCÈS !"
+          echo "🎊🎊 PRODUCTION DEPLOYÉE AVEC SUCCÈS !"
           echo ""
           echo "🏅 Tu es maintenant un DevOps Senior !"
           echo "💪 Pipeline CI/CD complet maîtrisé"
