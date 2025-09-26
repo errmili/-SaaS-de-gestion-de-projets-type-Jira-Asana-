@@ -180,7 +180,7 @@ jobs:
       # =================== MESSAGE FINAL ===================
       - name: 🎉 Pipeline CI Complet
         run: |
-          echo "🚀 PIPELINE CI SAAS COMPLET RÉUSSI !"
+          echo "🚀🚀 PIPELINE CI SAAS COMPLET RÉUSSI !"
           echo "✅ Compilation des 5 services"
           echo "✅ Tests unitaires"  
           echo "✅ Build Docker des images"
