@@ -1,0 +1,20 @@
+# Revenir sur develop et nettoyer
+git checkout develop
+git pull origin develop
+# Créer ta feature branch
+git checkout -b feature/nouvelle-fonctionnalite
+
+# Développer + tester localement
+# Une fois terminé:
+git add .
+git commit -m "Add nouvelle fonctionnalité"
+git push origin feature/nouvelle-fonctionnalite
+
+# Mettre à jour main localement
+git checkout main
+git pull origin main
+
+
+Merge vers develop → Staging automatique (metre a jour develop)
+
+Merge vers main → Production automatique (mettre a jour main)
