@@ -2,33 +2,26 @@ FROM eclipse-temurin:17-jdk-alpine AS build
 
 WORKDIR /app
 
-# Copier les fichiers Maven
 COPY pom.xml .
 COPY mvnw .
 COPY .mvn .mvn
 
-# Donner les permissions
 RUN chmod +x mvnw
 
-# Télécharger dépendances
 RUN ./mvnw dependency:go-offline -B
 
-# Copier code source
 COPY src ./src
 
-# Compiler
 RUN ./mvnw clean package -DskipTests
 
-# Stage final
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Copier JAR compilé
 COPY --from=build /app/target/auth-service-1.0.0-SNAPSHOT.jar app.jar
 
 EXPOSE 8081
-x`
+
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
 CMD ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
