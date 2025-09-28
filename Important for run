@@ -1,3 +1,7 @@
+# Mettre à jour main localement
+git checkout main
+git pull origin main
+
 # Revenir sur develop et nettoyer
 git checkout develop
 git pull origin develop
@@ -10,11 +14,23 @@ git add .
 git commit -m "Add nouvelle fonctionnalité"
 git push origin feature/nouvelle-fonctionnalite
 
-# Mettre à jour main localement
-git checkout main
-git pull origin main
-
++++++++++++++++++++++++++++++++++
 
 Merge vers develop → Staging automatique (metre a jour develop)
 
 Merge vers main → Production automatique (mettre a jour main)
+
+****************************  DOCKER *************************
+
+tjr clean instal si t change en code (pas yml)
+
+docker-compose -f docker-compose-test.yml ps  (État des conteneurs)
+
+# Logs de tous les services
+docker-compose -f docker-compose-test.yml logs -f
+
+docker-compose -f docker-compose-test.yml up -d postgres postgres-notification redis zookeeper kafka
+docker-compose -f docker-compose-test.yml up -d auth-service project-service file-service notification-service
+pour la dernier service analityc service voir sur claude prof saas docker #1 (en bas de la page)
+
+docker-compose -f docker-compose-test.yml down
