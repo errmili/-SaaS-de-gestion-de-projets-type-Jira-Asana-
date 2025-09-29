@@ -1,6 +1,3 @@
-server:
-  port: ${SERVER_PORT:8084}
-
 spring:
   config:
     activate:
@@ -8,68 +5,107 @@ spring:
 
   datasource:
     url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: ${DB_POOL_SIZE:50}
-      minimum-idle: ${DB_POOL_MIN:10}
+      maximum-pool-size: 20
+      minimum-idle: 5
 
   jpa:
+    hibernate:
+      ddl-auto: update
     show-sql: false
-    properties:
-      hibernate:
-        default_schema: ${DATABASE_SCHEMA:notification_db}
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:
-    user: ${FLYWAY_USER}
-    password: ${FLYWAY_PASSWORD}
-    schemas: ${DATABASE_SCHEMA:notification_db}
-    default-schema: ${DATABASE_SCHEMA:notification_db}
+    enabled: true
+    locations: classpath:db/migration
 
-  # Configuration Kafka pour production
-  kafka:
-    bootstrap-servers: ${KAFKA_SERVERS}
-    consumer:
-      group-id: ${KAFKA_GROUP_ID:notification-service}
+server:
+  port: ${SERVER_PORT:8084}
 
-  # Configuration Mail pour production
-  mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT:587}
-    username: ${MAIL_USERNAME}
-    password: ${MAIL_PASSWORD}
-
-  # Configuration Redis pour production
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT:6379}
-      password: ${REDIS_PASSWORD}
-      timeout: ${REDIS_TIMEOUT:2000ms}
-
-# Services externes en production
 auth-service:
   base-url: ${AUTH_SERVICE_URL}
 
-# Configuration notification pour production
-notification:
-  websocket:
-    allowed-origins: ${WEBSOCKET_ORIGINS}
-
-# Eureka active en production
-eureka:
-  client:
-    enabled: ${EUREKA_ENABLED:true}
-    service-url:
-      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
-
-# Logging minimal en production
 logging:
   level:
     com.projectsaas.notification: INFO
-    org.springframework.security: WARN
-    org.hibernate: WARN
     root: WARN
-  pattern:
-    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+
+#server:
+#  port: ${SERVER_PORT:8084}
+#
+#spring:
+#  config:
+#    activate:
+#      on-profile: prod
+#
+#  datasource:
+#    url: ${DATABASE_URL}
+#    username: ${DATABASE_USERNAME}
+#    password: ${DATABASE_PASSWORD}
+#    driver-class-name: org.postgresql.Driver
+#    hikari:
+#      maximum-pool-size: ${DB_POOL_SIZE:50}
+#      minimum-idle: ${DB_POOL_MIN:10}
+#
+#  jpa:
+#    show-sql: false
+#    properties:
+#      hibernate:
+#        default_schema: ${DATABASE_SCHEMA:notification_db}
+#
+#  flyway:
+#    user: ${FLYWAY_USER}
+#    password: ${FLYWAY_PASSWORD}
+#    schemas: ${DATABASE_SCHEMA:notification_db}
+#    default-schema: ${DATABASE_SCHEMA:notification_db}
+#
+#  # Configuration Kafka pour production
+#  kafka:
+#    bootstrap-servers: ${KAFKA_SERVERS}
+#    consumer:
+#      group-id: ${KAFKA_GROUP_ID:notification-service}
+#
+#  # Configuration Mail pour production
+#  mail:
+#    host: ${MAIL_HOST}
+#    port: ${MAIL_PORT:587}
+#    username: ${MAIL_USERNAME}
+#    password: ${MAIL_PASSWORD}
+#
+#  # Configuration Redis pour production
+#  data:
+#    redis:
+#      host: ${REDIS_HOST}
+#      port: ${REDIS_PORT:6379}
+#      password: ${REDIS_PASSWORD}
+#      timeout: ${REDIS_TIMEOUT:2000ms}
+#
+## Services externes en production
+#auth-service:
+#  base-url: ${AUTH_SERVICE_URL}
+#
+## Configuration notification pour production
+#notification:
+#  websocket:
+#    allowed-origins: ${WEBSOCKET_ORIGINS}
+#
+## Eureka active en production
+#eureka:
+#  client:
+#    enabled: ${EUREKA_ENABLED:true}
+#    service-url:
+#      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+#
+## Logging minimal en production
+#logging:
+#  level:
+#    com.projectsaas.notification: INFO
+#    org.springframework.security: WARN
+#    org.hibernate: WARN
+#    root: WARN
+#  pattern:
+#    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
