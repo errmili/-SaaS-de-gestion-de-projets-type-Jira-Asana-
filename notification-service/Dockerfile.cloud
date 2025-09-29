@@ -15,9 +15,9 @@ RUN ./mvnw clean package -DskipTests
 FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
-COPY --from=build /app/target/file-service-1.0.0-SNAPSHOT.jar app.jar
+COPY --from=build /app/target/notification-service-1.0.0-SNAPSHOT.jar app.jar
 
-EXPOSE 8083
+EXPOSE 8084
 
 ENV JAVA_OPTS="-Xmx512m -Xms256m"
 
