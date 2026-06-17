@@ -1,0 +1,38 @@
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+
+# Spring Boot
+*.log
+spring.log
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+temp-storage/
+reports/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+
+# Build
+build/
+dist/

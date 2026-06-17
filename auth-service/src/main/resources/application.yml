@@ -22,7 +22,7 @@ spring:
         order_updates: true
 
   flyway:
-    enabled: true
+    enabled: true 
     locations: classpath:db/migration
 
 # Multi-tenant config (commun)

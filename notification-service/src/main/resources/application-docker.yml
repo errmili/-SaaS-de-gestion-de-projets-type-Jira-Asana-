@@ -7,48 +7,71 @@ spring:
       on-profile: docker
 
   datasource:
-    url: ${DATABASE_URL}
-    username: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres-notification:5432/notification_db}
+    username: ${SPRING_DATASOURCE_USERNAME:notification_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:notification_pass}
     driver-class-name: org.postgresql.Driver
 
   jpa:
-    show-sql: false
+    hibernate:
+      ddl-auto: update
+    show-sql: true
     properties:
       hibernate:
-        default_schema: notification_db
+        dialect: org.hibernate.dialect.PostgreSQLDialect
 
   flyway:
-    user: ${DB_USERNAME}
-    password: ${DB_PASSWORD}
-    schemas: notification_db
-    default-schema: notification_db
+    enabled: true
+    baseline-on-migrate: true
+    user: ${SPRING_DATASOURCE_USERNAME:notification_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:notification_pass}
 
   mail:
-    host: ${SMTP_HOST}
-    port: ${SMTP_PORT}
-    username: ${SMTP_USERNAME}
-    password: ${SMTP_PASSWORD}
+    host: ${SPRING_MAIL_HOST:smtp.gmail.com}
+    port: ${SPRING_MAIL_PORT:587}
+    username: ${SPRING_MAIL_USERNAME}
+    password: ${SPRING_MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
 
   data:
     redis:
-      host: ${REDIS_HOST}
-      port: 6379
-      password: ${REDIS_PASSWORD}
+      host: ${REDIS_HOST:redis}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:redis123}
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    bootstrap-servers: ${SPRING_KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
     consumer:
       group-id: notification-service
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: '*'
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+
+eureka:
+  client:
+    enabled: ${EUREKA_CLIENT_ENABLED:true}
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE:http://localhost:8761/eureka/}
 
 # Services externes
 auth-service:
-  base-url: ${AUTH_SERVICE_URL}
+  base-url: ${AUTH_SERVICE_URL:http://auth-service:8081}
 
 logging:
   level:
-    com.projectsaas.notification: INFO
-    org.hibernate.SQL: WARN
+    com.projectsaas.notification: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
@@ -61,5 +84,8 @@ management:
   endpoint:
     health:
       show-details: always
+  health:
+    mail:
+      enabled: false  # ← AJOUTE CETTE LIGNE => : Ignorer le Mail dans le Health Check
   security:
     enabled: false

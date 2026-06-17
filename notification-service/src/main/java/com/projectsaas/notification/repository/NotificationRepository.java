@@ -22,7 +22,7 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     List<Notification> findByStatusAndScheduledForBefore(NotificationStatus status, LocalDateTime dateTime);
 
-    @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.status != 'READ'")
+    @Query("SELECT COUNT(n) FROM Notification n WHERE n.userId = :userId AND n.status = 'SENT'")
     Long countUnreadByUserId(@Param("userId") Long userId);
 
     List<Notification> findByUserIdAndStatus(Long userId, NotificationStatus status);
