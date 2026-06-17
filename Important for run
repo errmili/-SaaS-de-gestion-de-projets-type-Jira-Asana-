@@ -34,3 +34,26 @@ docker-compose -f docker-compose-test.yml up -d auth-service project-service fil
 pour la dernier service analityc service voir sur claude prof saas docker #1 (en bas de la page)
 
 docker-compose -f docker-compose-test.yml down
+
+____________________________________ Final commande for run ______________________________
+si t veux chercher ses commande tu juste controle f sur page puis tape (♻️ Redémarrer TOUT)
+💻 SCÉNARIO 2 : Service en Local + Infra Docker (Développement)
+# Démarrer uniquement Postgres, Redis, Kafka, Zookeeper
+docker-compose -f docker-compose-test.yml up -d postgres-notification redis kafka zookeeper
+Attendre 20 secondes
+
+// 🛑 Arrêter TOUT (SANS supprimer les données)
+docker-compose -f docker-compose-test.yml stop
+# Ou tout fermer
+docker-compose -f docker-compose-test.yml down
+
+// si t veux travailler avec docker
+docker-compose -f docker-compose-test.yml up -d
+
+# plus commande
+//♻️ Redémarrer TOUT
+docker-compose -f docker-compose-test.yml restart    || Ou : docker-compose -f docker-compose-test.yml up -d
+
+//Arrêter ET Supprimer TOUT (Reset Complet)
+// # ATTENTION : Supprime les volumes (données perdues !)
+docker-compose -f docker-compose-test.yml down -v

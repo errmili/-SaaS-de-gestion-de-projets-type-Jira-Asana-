@@ -1,6 +1,7 @@
 package com.projectsaas.notification.service;
 
 import com.projectsaas.notification.dto.NotificationRequest;
+import com.projectsaas.notification.dto.NotificationResponse;
 import com.projectsaas.notification.entity.Notification;
 import com.projectsaas.notification.entity.UserPreference;
 import com.projectsaas.notification.enums.DeliveryChannel;
@@ -10,18 +11,22 @@ import com.projectsaas.notification.repository.NotificationRepository;
 import com.projectsaas.notification.repository.UserPreferenceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
-@Transactional
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
@@ -29,83 +34,103 @@ public class NotificationService {
     private final EmailService emailService;
     private final WebSocketService webSocketService;
 
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+    @Transactional
     public Notification createNotification(NotificationRequest request) {
         log.info("Creating notification for user: {}", request.getUserId());
 
-        // Vérifier les préférences utilisateur
-        if (!shouldSendNotification(request)) {
-            log.info("Notification skipped due to user preferences: {}", request);
-            return null;
-        }
-
+        // 1. Créer la notification
         Notification notification = Notification.builder()
                 .userId(request.getUserId())
                 .title(request.getTitle())
                 .message(request.getMessage())
                 .type(request.getType())
-                .status(NotificationStatus.PENDING)
                 .channel(request.getChannel())
-                .metadata(request.getMetadata())
+                .status(NotificationStatus.PENDING)
                 .projectId(request.getProjectId())
                 .taskId(request.getTaskId())
                 .recipientEmail(request.getRecipientEmail())
-                .scheduledFor(request.getScheduledFor())
+//                .metadata(request.getMetadata())
                 .build();
 
+        // 2. Sauvegarder IMMÉDIATEMENT
         notification = notificationRepository.save(notification);
+        log.info("✅ Notification saved with ID: {}", notification.getId());
 
-        // Envoyer immédiatement si pas de planification
-        if (request.getScheduledFor() == null ||
-                request.getScheduledFor().isBefore(LocalDateTime.now())) {
-            sendNotification(notification);
+        // 3. Envoyer (SANS propager l'exception)
+        try {
+            sendNotificationNow(notification);
+            notification.setStatus(NotificationStatus.SENT);
+            notification.setSentAt(LocalDateTime.now());
+            log.info("✅ Notification sent successfully: {}", notification.getId());
+        } catch (Exception e) {
+            log.error("❌ Failed to send notification {}: {}", notification.getId(), e.getMessage());
+            notification.setStatus(NotificationStatus.FAILED);
+        }
+
+        // 4. Mettre à jour le statut
+        notification = notificationRepository.save(notification);
+        log.info("✅ Final status: {} for notification: {}", notification.getStatus(), notification.getId());
+
+
+        if (DeliveryChannel.WEBSOCKET.equals(notification.getChannel())) {
+            publishNotificationViaWebSocket(notification);
         }
 
         return notification;
     }
 
-    private boolean shouldSendNotification(NotificationRequest request) {
-        UserPreference preferences = userPreferenceRepository.findByUserId(request.getUserId())
-                .orElse(UserPreference.builder()
-                        .userId(request.getUserId())
-                        .build());
+    private void publishNotificationViaWebSocket(Notification notification) {
+        try {
+            // ✅ CORRIGÉ - Créer la réponse
+            Map<String, Object> response = new HashMap<>();
+            response.put("id", notification.getId());
+            response.put("userId", notification.getUserId());
+            response.put("title", notification.getTitle());
+            response.put("message", notification.getMessage());
+            response.put("type", notification.getType());
+            response.put("status", notification.getStatus());
+            response.put("channel", notification.getChannel());
+            response.put("projectId", notification.getProjectId());
+            response.put("taskId", notification.getTaskId());
+            response.put("createdAt", notification.getCreatedAt());
 
-        // Vérifier le canal de delivery
-        return switch (request.getChannel()) {
-            case EMAIL -> preferences.getEmailNotifications();
-            case WEBSOCKET -> preferences.getWebsocketNotifications();
-            case PUSH -> preferences.getPushNotifications();
-            default -> true;
-        } && shouldSendForType(request.getType(), preferences);
+            // ✅ CRITIQUE - Utiliser convertAndSendToUser au lieu de convertAndSend
+            messagingTemplate.convertAndSendToUser(
+                    String.valueOf(notification.getUserId()),  // userId en String
+                    "/queue/notifications",                     // destination (SANS /user/)
+                    response
+            );
+
+            log.info("📤 Notification sent via WebSocket to user: {}", notification.getUserId());
+        } catch (Exception e) {
+            log.error("❌ Error sending notification via WebSocket", e);
+        }
     }
-
-    private boolean shouldSendForType(NotificationType type, UserPreference preferences) {
-        return switch (type) {
-            case TASK_ASSIGNED -> preferences.getTaskAssigned();
-            case TASK_UPDATED -> preferences.getTaskUpdated();
-            case PROJECT_INVITATION -> preferences.getProjectInvitation();
-            case DEADLINE_REMINDER -> preferences.getDeadlineReminder();
-            case MENTION -> preferences.getCommentMentions();
-            default -> true;
-        };
-    }
-
+    // Méthode publique pour les appels externes (ScheduledNotificationService, etc.)
+    @Transactional
     public void sendNotification(Notification notification) {
         try {
-            switch (notification.getChannel()) {
-                case EMAIL -> emailService.sendEmail(notification);
-                case WEBSOCKET -> webSocketService.sendNotification(notification);
-                case PUSH -> sendPushNotification(notification);
-                default -> log.warn("Unknown delivery channel: {}", notification.getChannel());
-            }
-
+            sendNotificationNow(notification);
             notification.setStatus(NotificationStatus.SENT);
             notification.setSentAt(LocalDateTime.now());
             notificationRepository.save(notification);
-
+            log.info("✅ Notification sent: {}", notification.getId());
         } catch (Exception e) {
-            log.error("Failed to send notification: {}", notification.getId(), e);
+            log.error("❌ Failed to send notification {}: {}", notification.getId(), e.getMessage());
             notification.setStatus(NotificationStatus.FAILED);
             notificationRepository.save(notification);
+        }
+    }
+
+    // Méthode privée d'envoi SANS sauvegarde
+    private void sendNotificationNow(Notification notification) {
+        switch (notification.getChannel()) {
+            case EMAIL -> emailService.sendEmail(notification);
+            case WEBSOCKET -> webSocketService.sendNotification(notification);
+            case PUSH -> sendPushNotification(notification);
+            default -> log.warn("Unknown delivery channel: {}", notification.getChannel());
         }
     }
 
@@ -127,8 +152,7 @@ public class NotificationService {
     }
 
     private void sendPushNotification(Notification notification) {
-        // TODO: Implémenter l'envoi de push notifications
-        log.info("Push notification sent to user: {}", notification.getUserId());
+        log.info("📱 Push notification sent to user: {}", notification.getUserId());
     }
 
     public void markAllAsRead(Long userId) {

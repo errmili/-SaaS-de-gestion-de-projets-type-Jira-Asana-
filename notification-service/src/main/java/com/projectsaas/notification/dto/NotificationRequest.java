@@ -24,17 +24,23 @@ public class NotificationRequest {
     @NotBlank(message = "Title is required")
     private String title;
 
+    @NotBlank(message = "Message is required")
     private String message;
 
     @NotNull(message = "Notification type is required")
     private NotificationType type;
 
     @NotNull(message = "Delivery channel is required")
-    private DeliveryChannel channel;
+    @Builder.Default
+    private DeliveryChannel channel = DeliveryChannel.WEBSOCKET;
 
     private Map<String, String> metadata;
+
     private Long projectId;
+
     private Long taskId;
+
     private String recipientEmail;
+
     private LocalDateTime scheduledFor;
 }
