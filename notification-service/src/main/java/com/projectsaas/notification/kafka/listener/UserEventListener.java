@@ -1,5 +1,6 @@
 package com.projectsaas.notification.kafka.listener;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.projectsaas.notification.dto.NotificationRequest;
 import com.projectsaas.notification.dto.UserEventDto;
 import com.projectsaas.notification.enums.DeliveryChannel;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -18,43 +20,56 @@ import java.util.Map;
 public class UserEventListener {
 
     private final NotificationService notificationService;
+    private final ObjectMapper objectMapper;
 
     @KafkaListener(topics = "user.profile.updated", groupId = "notification-service")
-    public void handleUserProfileUpdated(UserEventDto userEvent) {
-        log.info("Received user profile updated event: {}", userEvent);
+    public void handleUserProfileUpdated(Map<String, Object> eventData) {
+        try {
+            UserEventDto userEvent = objectMapper.convertValue(eventData, UserEventDto.class);
+            log.info("Received user profile updated event: {}", userEvent);
 
-        NotificationRequest request = NotificationRequest.builder()
-                .userId(userEvent.getUserId())
-                .title("Profil mis à jour")
-                .message("Votre profil a été mis à jour avec succès")
-                .type(NotificationType.SYSTEM_ANNOUNCEMENT)
-                .channel(DeliveryChannel.WEBSOCKET)
-                .metadata(Map.of(
-                        "userName", userEvent.getUserName(),
-                        "updateType", "PROFILE"
-                ))
-                .build();
+            Map<String, String> metadata = new HashMap<>();
+            metadata.put("userName", userEvent.getUserName());
+            metadata.put("updateType", "PROFILE");
 
-        notificationService.createNotification(request);
+            NotificationRequest request = NotificationRequest.builder()
+                    .userId(userEvent.getUserId())
+                    .title("Profil mis à jour")
+                    .message("Votre profil a été mis à jour avec succès")
+                    .type(NotificationType.SYSTEM_ANNOUNCEMENT)
+                    .channel(DeliveryChannel.WEBSOCKET)
+                    .metadata(metadata)
+                    .build();
+
+            notificationService.createNotification(request);
+        } catch (Exception e) {
+            log.error("Error processing user profile updated event: {}", e.getMessage(), e);
+        }
     }
 
     @KafkaListener(topics = "user.password.changed", groupId = "notification-service")
-    public void handlePasswordChanged(UserEventDto userEvent) {
-        log.info("Received password changed event: {}", userEvent);
+    public void handlePasswordChanged(Map<String, Object> eventData) {
+        try {
+            UserEventDto userEvent = objectMapper.convertValue(eventData, UserEventDto.class);
+            log.info("Received password changed event: {}", userEvent);
 
-        NotificationRequest request = NotificationRequest.builder()
-                .userId(userEvent.getUserId())
-                .title("Mot de passe modifié")
-                .message("Votre mot de passe a été modifié avec succès. Si ce n'était pas vous, contactez immédiatement le support.")
-                .type(NotificationType.SYSTEM_ANNOUNCEMENT)
-                .channel(DeliveryChannel.EMAIL)
-                .recipientEmail(userEvent.getUserEmail())
-                .metadata(Map.of(
-                        "userName", userEvent.getUserName(),
-                        "securityAlert", "true"
-                ))
-                .build();
+            Map<String, String> metadata = new HashMap<>();
+            metadata.put("userName", userEvent.getUserName());
+            metadata.put("securityAlert", "true");
 
-        notificationService.createNotification(request);
+            NotificationRequest request = NotificationRequest.builder()
+                    .userId(userEvent.getUserId())
+                    .title("Mot de passe modifié")
+                    .message("Votre mot de passe a été modifié avec succès. Si ce n'était pas vous, contactez immédiatement le support.")
+                    .type(NotificationType.SYSTEM_ANNOUNCEMENT)
+                    .channel(DeliveryChannel.EMAIL)
+                    .recipientEmail(userEvent.getUserEmail())
+                    .metadata(metadata)
+                    .build();
+
+            notificationService.createNotification(request);
+        } catch (Exception e) {
+            log.error("Error processing password changed event: {}", e.getMessage(), e);
+        }
     }
 }

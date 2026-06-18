@@ -32,6 +32,7 @@ public class NotificationResponse {
     private LocalDateTime readAt;
     private LocalDateTime createdAt;
 
+    // Converter method
     public static NotificationResponse from(Notification notification) {
         return NotificationResponse.builder()
                 .id(notification.getId())
@@ -41,7 +42,7 @@ public class NotificationResponse {
                 .type(notification.getType())
                 .status(notification.getStatus())
                 .channel(notification.getChannel())
-                .metadata(notification.getMetadata())
+//                .metadata(notification.getMetadata())
                 .projectId(notification.getProjectId())
                 .taskId(notification.getTaskId())
                 .sentAt(notification.getSentAt())

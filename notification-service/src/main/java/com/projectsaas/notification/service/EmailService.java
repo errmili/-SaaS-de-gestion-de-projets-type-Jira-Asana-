@@ -56,11 +56,11 @@ public class EmailService {
         context.setVariable("message", notification.getMessage());
         context.setVariable("type", notification.getType());
 
-        if (notification.getMetadata() != null) {
-            for (Map.Entry<String, String> entry : notification.getMetadata().entrySet()) {
-                context.setVariable(entry.getKey(), entry.getValue());
-            }
-        }
+//        if (notification.getMetadata() != null) {
+//            for (Map.Entry<String, String> entry : notification.getMetadata().entrySet()) {
+//                context.setVariable(entry.getKey(), entry.getValue());
+//            }
+//        }
 
         return templateEngine.process(templateName, context);
     }

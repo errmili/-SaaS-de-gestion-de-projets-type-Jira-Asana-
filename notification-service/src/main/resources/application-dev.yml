@@ -41,11 +41,14 @@ spring:
   mail:
     host: smtp.gmail.com
     port: 587
-    username: jadcanada11@gmail.com
-    password: your-app-password
+    username: errmilij@gmail.com
+    password: owhgszucdniqutfk  # ✅ SANS ESPACES !
     properties:
       mail:
         smtp:
+          auth: true  # ✅ AJOUTÉ - Obligatoire pour l'authentification
+          starttls:
+            enable: true  # ✅ AJOUTÉ - Obligatoire pour TLS
           trust: "*"
         debug: true
 
@@ -81,5 +84,8 @@ logging:
     org.springframework.kafka: DEBUG
     org.springframework.mail: DEBUG
     org.flywaydb: DEBUG
+    org.springframework.web.socket: DEBUG
+    org.springframework.messaging: DEBUG
+
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
